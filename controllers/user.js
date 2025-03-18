@@ -1,4 +1,27 @@
 let USER = require("../model/user")
+let jwt = require('jsonwebtoken');
+
+exports.secure = async (req, res, next) => {
+    try {
+
+        let token = req.headers.authorization;
+        if (!token) throw new Error("please provide token");
+        let decoded = jwt.verify(token, "booking");
+        let { id } = decoded;
+        let userdata = await USER.findById(id);
+        if (!userdata) throw new Error("user not found");
+        req.user = userdata;
+
+        next();
+
+    } catch (error) {
+        res.status(404).json({
+            status: "unsuccessful",
+            message: "user not found",
+            error: error.message
+        })
+    }
+}
 
 exports.read = async (req, res) => {
     try {
@@ -31,13 +54,13 @@ exports.create = async (req, res, next) => {
 
         res.status(201).json({
             status: "success",
-            message: `${userdata.role} with email ${email} created successfully`,
+            message: "created successfully",
             userdata
         })
     } catch (error) {
         res.status(404).json({
             status: "unsuccessful",
-            message: `${userdata.role} with email ${email} created unsuccessfully`,
+            message: "created unsuccessfully",
             error: error.message
         })
     }
@@ -56,10 +79,13 @@ exports.login = async (req, res, next) => {
         if (!finddata) throw new Error("invalid email");
         if (finddata.password !== password) throw new Error("invalid password");
 
+        let token = jwt.sign({ id: finddata._id }, "booking", { expiresIn: "15m" })
+
         res.status(200).json({
             status: "success",
             message: `${finddata.role} with email ${email} logged in successfully`,
-            finddata
+            finddata,
+            token
         })
     } catch (error) {
         res.status(404).json({
@@ -70,14 +96,14 @@ exports.login = async (req, res, next) => {
     }
 }
 
-exports.update = async (req,res) => {
-    
-    try {
-        
-        if(!req.params.id) throw new Error("please provide id")
+exports.update = async (req, res) => {
 
-         updatedata = await USER.findByIdAndUpdate(req.params.id,req.body,{new:true})
-        if(!updatedata) throw new Error("user not found")
+    try {
+
+        if (!req.params.id) throw new Error("please provide id")
+
+        updatedata = await USER.findByIdAndUpdate(req.params.id, req.body, { new: true })
+        if (!updatedata) throw new Error("user not found")
 
         res.status(200).json({
             status: "success",
@@ -94,14 +120,14 @@ exports.update = async (req,res) => {
 
 }
 
-exports.delete = async (req,res) => {
-    
+exports.delete = async (req, res) => {
+
     try {
-        
-        if(!req.params.id) throw new Error("please provide id")
-            
-         deletedata = await USER.findByIdAndDelete(req.params.id)
-        if(!deletedata) throw new Error("user not found")
+
+        if (!req.params.id) throw new Error("please provide id")
+
+        deletedata = await USER.findByIdAndDelete(req.params.id)
+        if (!deletedata) throw new Error("user not found")
 
         res.status(200).json({
             status: "success",

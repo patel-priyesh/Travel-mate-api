@@ -51,6 +51,10 @@ let bookingSchema = new Schema({
         enum: ['Pending', 'Paid'],
         default: 'Pending'
     },
+    createdAt: {
+        type: Date,
+        default: Date.now()
+    }
     
 })
 

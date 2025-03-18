@@ -3,8 +3,10 @@ let DESTINATION = require("../model/destination");
 exports.create = async (req, res, next) => {
     try {
         let { name, location, description, attractions, bestTimeToVisit, days, imageUrl, rating, price} = req.body
+
         let alreadyExists = await DESTINATION.findOne({ name: name })
         if (alreadyExists) throw new Error(`destination with name ${name} already exists`);
+        
         let userdata = await DESTINATION.create({ name, location, description, attractions, bestTimeToVisit, days, price ,imageUrl, rating})
 
         res.status(201).json({
